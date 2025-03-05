@@ -23,7 +23,6 @@ export function InputSelect<TItem>({
       if (selectedItem === null) {
         return
       }
-
       consumerOnChange(selectedItem)
       setSelectedValue(selectedItem)
     },
@@ -63,7 +62,7 @@ export function InputSelect<TItem>({
                 toggleProps.onClick(event)
               }}
             >
-              {inputValue} 
+              {inputValue}
             </div>
 
             <div
