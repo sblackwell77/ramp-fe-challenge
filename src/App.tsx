@@ -1,12 +1,12 @@
 import { Fragment, useCallback, useEffect, useMemo, useState } from "react"
-import { Employee } from "./utils/types"
 import { InputSelect } from "./components/InputSelect"
-import { TransactionPane } from "./components/TransactionPane"
 import { Instructions } from "./components/Instructions"
+import { Transactions } from "./components/Transactions"
 import { useEmployees } from "./hooks/useEmployees"
 import { usePaginatedTransactions } from "./hooks/usePaginatedTransactions"
 import { useTransactionsByEmployee } from "./hooks/useTransactionsByEmployee"
 import { EMPTY_EMPLOYEE } from "./utils/constants"
+import { Employee } from "./utils/types"
 
 export function App() {
   const { data: employees, ...employeeUtils } = useEmployees()
@@ -24,9 +24,9 @@ export function App() {
     transactionsByEmployeeUtils.invalidateData()
 
     await employeeUtils.fetchAll()
-    setIsLoading(false)
     await paginatedTransactionsUtils.fetchAll()
 
+    setIsLoading(false)
   }, [employeeUtils, paginatedTransactionsUtils, transactionsByEmployeeUtils])
 
   const loadTransactionsByEmployee = useCallback(
@@ -61,38 +61,34 @@ export function App() {
             label: `${item.firstName} ${item.lastName}`,
           })}
           onChange={async (newValue) => {
-            if (newValue === null) {
-              return
+            if (
+              (newValue?.firstName === "All" &&
+                newValue?.lastName === "Employees" &&
+                newValue?.id === "") ||
+              newValue === null
+            ) {
+              return await loadAllTransactions()
             }
-            else if (newValue.id === "") {
-              await loadAllTransactions()
-            }
-            else await loadTransactionsByEmployee(newValue.id)
+
+            await loadTransactionsByEmployee(newValue.id)
           }}
         />
 
         <div className="RampBreak--l" />
 
         <div className="RampGrid">
-          {transactions === null ? (
-            <div className="RampLoading--container">Loading...</div>
-          ) : (
-            <Fragment>
-              <div data-testid="transaction-container">
-                {transactions.map((transaction) => (
-                  <TransactionPane key={transaction.id} transaction={transaction} />
-                ))}
-              </div>
-              <button
-                className="RampButton"
-                disabled={paginatedTransactionsUtils.loading || paginatedTransactions?.nextPage == null || transactionsByEmployee?.length === 0}
-                onClick={async () => {
-                  await loadAllTransactions()
-                }}
-              >
-                View More
-              </button>
-            </Fragment>
+          <Transactions transactions={transactions} />
+
+          {transactions !== null && (
+            <button
+              className="RampButton"
+              disabled={paginatedTransactionsUtils.loading}
+              onClick={async () => {
+                await loadAllTransactions()
+              }}
+            >
+              View More
+            </button>
           )}
         </div>
       </main>
